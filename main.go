@@ -10,7 +10,7 @@ import (
 	"github.com/ramseydsilva/snarl"
 )
 
-var addr = flag.String("addr", ":8080", "http service address")
+var addr = flag.Int("addr", 8080, "http service address")
 var port = flag.Int("port", 9666, "port")
 var templ = template.Must(template.ParseFiles("index.html"))
 
@@ -32,6 +32,8 @@ func serveHome(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	flag.Parse()
+
 	go h.run()
 
 	messageChannel := snarl.Receive(*port)
@@ -43,5 +45,5 @@ func main() {
 
 	http.HandleFunc("/", serveHome)
 	http.HandleFunc("/ws", serveWs)
-	log.Fatal(http.ListenAndServe(*addr, nil))
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *addr), nil))
 }
