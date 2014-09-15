@@ -1,0 +1,80 @@
+<html lang="en">
+<head>
+<title>Snarl Chat</title>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+<script type="text/javascript">
+    $(function() {
+
+        var conn;
+            msg = $("#msg"),
+            usn = $("#usn"),
+            ip = $('#ip'),
+            port = $('#port'),
+            bg = $('#bg'),
+            color = $('#color'),
+            log = $("#log");
+
+        function appendLog(msg) {
+            var d = log[0]
+            var doScroll = d.scrollTop == d.scrollHeight - d.clientHeight;
+            msg.appendTo(log)
+            if (doScroll) {
+                d.scrollTop = d.scrollHeight - d.clientHeight;
+            }
+        }
+
+        $("form").submit(function() {
+            if (conn && msg.val() && usn.val() && ip.val() && port.val()) {
+                conn.send(JSON.stringify({
+                    Message: msg.val(),
+                    Username: usn.val(),
+                    Ip: ip.val(),
+                    Port: parseInt(port.val())
+                }));
+                msg.val("").focus();
+            }
+            return false
+        });
+
+        $('#bg, #color').change(function() {
+            $('body').css('background-color', bg.val());
+            $('body').css('color', color.val());
+        });
+
+        if (window["WebSocket"]) {
+            conn = new WebSocket("ws://{{$}}/ws");
+            conn.onclose = function(evt) {
+                appendLog($("<li><b>Connection closed.</b></li>"))
+            }
+            conn.onmessage = function(evt) {
+                appendLog($("<li/>").text(evt.data))
+            }
+        } else {
+            appendLog($("<li><b>Your browser does not support WebSockets.</b></li>"))
+        }
+
+    });
+</script>
+<style>
+    .chat {position: absolute; bottom: 55px; }
+    .controls {position: fixed; bottom: 0; left: 0; margin: 10px; }
+    .options {position: fixed; top: 0; right: 0; text-align: right; margin: 10px; }
+</style>
+</head>
+<body>
+    <div class="chat"><ul id="log"></ul></div>
+    <div class="controls">
+        <form method="GET" action=".">
+            <input type="submit" value="Send" />
+            <input type="text" id="msg" size="64"/>
+            <input type="text" id="usn" size="10" value="anon" />
+            <input type="text" id="ip" size="11" value="255.255.255.255" />
+            <input type="text" id="port" size="4" value="9666" />
+        </form>
+    </div>
+    <div class="options">
+        Background color <input type="text" id="bg" value="white" /><br/>
+        Text color <input type="text" id="color" value="black" />
+    </div>
+</body>
+</html>
